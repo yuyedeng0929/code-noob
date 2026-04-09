@@ -1,0 +1,62 @@
+//20260409MODIFY ONCE
+#include<iostream>
+#include<string>
+#include<vector>
+#include<algorithm>
+using namespace std;
+
+//create Student Structure
+Structure Student{
+  String name;
+  int score;
+  int id;
+  int number = 0;
+}
+
+// Sort by score in descending order
+bool cmpStudentScore(){
+  
+}
+
+int main(){
+  Student stu;
+  int option = 0;
+
+  cout << "1. Add" << endl;
+  cout << "2. Display" << endl;
+  cout << "3. Sort" << endl;
+  cout << "4. Search by student ID" << endl;
+  cout << "5. Modify score" << endl;
+  cout << "6. Delete student" << endl;
+  cout << "7. Statistics of failing students" << endl;
+  cout << "8. Clear all" <<endl;
+  cout << "0. exit" << endl;
+  cin >> option;
+
+  if(option == 0){
+    cout << "You have logged out the system." << endl;
+    break;
+  }
+// 1. Add
+  if(option == 1){
+    cout << "Please enter the name." << endl;cin >> stu.name;
+    cout << "Please enter the id." << endl;cin >> stu.id;
+    cout << "Please enter the score." << endl;cin  >> stu.score;
+    cout << "You have add a new student." << endl ;
+    number++;
+  }
+// 2. Display
+  if(option == 2){
+    cout << "\nname\tid\tscore" << endl;
+    for(auto &s : stu){
+      cout << stu.name << "\t" 
+      cout << stu.id << "\t"
+      cout << stu.score << endl;
+    }
+// 3. Sort
+// 4. Search by student ID
+// 5. Modify score
+// 6. Delete student
+// 7. Statistics of failing students
+// 8. Clear all
+}
