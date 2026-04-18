@@ -1,5 +1,5 @@
-// FIRST MODIFICATION : 20260409
-// SECOND MODIFICATION : 20260418
+// FIRST MODIFICATION : 20260409 Initially set up the framework
+// SECOND MODIFICATION : 20260418 Completed the initial version of Student Management System
 #include<iostream>
 #include<string>
 #include<vector>
@@ -34,7 +34,7 @@ int main() {
         cout << "8. Clear all" << endl;
         cout << "0. Exit" << endl;
         cout << "========================================" << endl;
-        cout << "Please enter your option: ";
+        cout << "Please enter your option: " << endl;
         cin >> option;
 
         // 0. Exit
@@ -155,3 +155,38 @@ int main() {
     }
     return 0;
 }
+
+//English Upgrade Outline for Student Management System
+//1. Basic Function Enhancement
+//Add student score statistics: average score, highest score, lowest score
+//Add score range statistics (90-100, 80-89, ..., <60)
+//Add fuzzy search by student name
+//Add multi-condition sorting: by ID, by name, by score (ascending/descending)
+//Add paged display for a large number of students
+
+//2. Robustness & Stability
+//Add input validation:
+//Score must be between 0-100
+//Student ID cannot be repeated
+//Prevent invalid non-numeric input
+//Optimize error prompts:
+//Prompt when the student list is empty
+//Clear prompts for failed search, modify, delete operations
+//Fix logical bugs and program crash risks
+
+//3. Data Persistence (File Storage)
+//Automatically save all student data to a text file
+//Automatically load data from the file when the program starts
+//Realize data will not be lost after exiting the program
+
+//4. Architecture & Object-Oriented Optimization
+//Encapsulate all functions into a StudentManager class
+//Use private variables to ensure data security
+//Split code into functions for better maintainability
+//Standardize code style and comments
+
+//5. Advanced Features (Optional)
+//Add administrator login system
+//Add operation logs
+//Export student reports
+//Use advanced data structures (map) to speed up search
