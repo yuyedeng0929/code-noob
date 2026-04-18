@@ -1,62 +1,157 @@
-//20260409MODIFY ONCE
+// FIRST MODIFICATION : 20260409
+// SECOND MODIFICATION : 20260418
 #include<iostream>
 #include<string>
 #include<vector>
 #include<algorithm>
 using namespace std;
 
-//create Student Structure
-Structure Student{
-  String name;
-  int score;
-  int id;
-  int number = 0;
-}
+// Create Student Structure
+struct Student {
+    string name;
+    int score;
+    int id;
+};
 
 // Sort by score in descending order
-bool cmpStudentScore(){
-  
+bool cmpStudentScore(Student a, Student b) {
+    return a.score > b.score;
 }
 
-int main(){
-  Student stu;
-  int option = 0;
+int main() {
+    vector<Student> stuList;
+    int option = 0;
 
-  cout << "1. Add" << endl;
-  cout << "2. Display" << endl;
-  cout << "3. Sort" << endl;
-  cout << "4. Search by student ID" << endl;
-  cout << "5. Modify score" << endl;
-  cout << "6. Delete student" << endl;
-  cout << "7. Statistics of failing students" << endl;
-  cout << "8. Clear all" <<endl;
-  cout << "0. exit" << endl;
-  cin >> option;
+    while (true) {
+        cout << "====== Student Management System ======" << endl;
+        cout << "1. Add" << endl;
+        cout << "2. Display" << endl;
+        cout << "3. Sort" << endl;
+        cout << "4. Search by student ID" << endl;
+        cout << "5. Modify score" << endl;
+        cout << "6. Delete student" << endl;
+        cout << "7. Count failing students" << endl;
+        cout << "8. Clear all" << endl;
+        cout << "0. Exit" << endl;
+        cout << "========================================" << endl;
+        cout << "Please enter your option: ";
+        cin >> option;
 
-  if(option == 0){
-    cout << "You have logged out the system." << endl;
-    break;
-  }
-// 1. Add
-  if(option == 1){
-    cout << "Please enter the name." << endl;cin >> stu.name;
-    cout << "Please enter the id." << endl;cin >> stu.id;
-    cout << "Please enter the score." << endl;cin  >> stu.score;
-    cout << "You have add a new student." << endl ;
-    number++;
-  }
-// 2. Display
-  if(option == 2){
-    cout << "\nname\tid\tscore" << endl;
-    for(auto &s : stu){
-      cout << stu.name << "\t" 
-      cout << stu.id << "\t"
-      cout << stu.score << endl;
+        // 0. Exit
+        if (option == 0) {
+            cout << "You have exited the system." << endl;
+            break;
+        }
+
+        // 1. Add
+        if (option == 1) {
+            Student stu;
+            cout << "Please enter the name: "; cin >> stu.name;
+            cout << "Please enter the id: "; cin >> stu.id;
+            cout << "Please enter the score: "; cin >> stu.score;
+            stuList.push_back(stu);
+            cout << "You have added a new student successfully!" << endl;
+        }
+
+        // 2. Display
+        if (option == 2) {
+            cout << "\nName\tID\tScore" << endl;
+            for (auto &s : stuList) {
+                cout << s.name << "\t"
+                     << s.id << "\t"
+                     << s.score << endl;
+            }
+            cout << endl;
+        }
+
+        // 3. Sort
+        if (option == 3) {
+            sort(stuList.begin(), stuList.end(), cmpStudentScore);
+            cout << "Sorted by score in descending order successfully!" << endl;
+        }
+
+        // 4. Search by student ID
+        if (option == 4) {
+            int findID = 0;
+            cout << "Please enter the student ID to search: ";
+            cin >> findID;
+            bool found = false;
+
+            for (auto &s : stuList) {
+                if (s.id == findID) {
+                    cout << "Student ID: " << s.id << endl;
+                    cout << "Student name: " << s.name << endl;
+                    cout << "Student score: " << s.score << endl;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                cout << "No such student found!" << endl;
+            }
+        }
+
+        // 5. Modify score
+        if (option == 5) {
+            int modifyID = 0;
+            cout << "Please enter the student ID to modify: "; cin >> modifyID;
+            bool found = false;
+
+            for (auto &s : stuList) {
+                if (s.id == modifyID) {
+                    cout << "Original Score: " << s.score << endl;
+                    cout << "Please enter the new score: ";
+                    cin >> s.score;
+                    cout << "Modified successfully! New score: " << s.score << endl;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                cout << "Modification failed! No such student." << endl;
+            }
+        }
+
+        // 6. Delete student
+        if (option == 6) {
+            int deleteID = 0;
+            cout << "Please enter the student ID to delete: "; cin >> deleteID;
+
+            for (auto it = stuList.begin(); it != stuList.end(); it++) {
+                if (it->id == deleteID) {
+                    stuList.erase(it);
+                    cout << "Delete successfully!" << endl;
+                    break;
+                }
+            }
+        }
+
+        // 7. Count failing students
+        if (option == 7) {
+            int cnt = 0;
+            for (auto &s : stuList) {
+                if (s.score < 60) {
+                    cnt++;
+                }
+            }
+            cout << "The number of failing students: " << cnt << endl;
+        }
+
+        // 8. Clear all
+        if (option == 8) {
+            cout << "Are you sure to CLEAR ALL? 0 = Cancel, 1 = Confirm" << endl;
+            int op = 0; cin >> op;
+            if (op == 1) {
+                stuList.clear();
+                cout << "Clear all successfully." << endl;
+            } else {
+                cout << "Canceled successfully." << endl;
+            }
+        }
+
+        cout << endl;
     }
-// 3. Sort
-// 4. Search by student ID
-// 5. Modify score
-// 6. Delete student
-// 7. Statistics of failing students
-// 8. Clear all
+    return 0;
 }
