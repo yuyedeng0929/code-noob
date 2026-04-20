@@ -1,21 +1,33 @@
 // FIRST MODIFICATION : 20260409 Initially set up the framework
 // SECOND MODIFICATION : 20260418 Completed the initial version of Student Management System
+// THIRD MODIFICATION : 202260420 Basic function enhancement(PART)
 #include<iostream>
 #include<string>
 #include<vector>
 #include<algorithm>
+#include<iomanip>
 using namespace std;
 
-// Create Student Structure
-struct Student {
+struct Student {    // Create Student Structure
     string name;
     int score;
     int id;
 };
 
-// Sort by score in descending order
-bool cmpStudentScore(Student a, Student b) {
+bool cmpStudentScore(Student a, Student b) {    // Sort by score in descending order
     return a.score > b.score;
+}
+
+bool cmpStudentasc(Student a,Student b){    // Sort by score in ascending order
+    return a.score < b.score;
+}
+
+bool cmpID(Student a,Student b){    //Sort by ID
+    return a.id < b.id;
+}
+
+bool cmpName(Student a,Student b){    //Sort by name
+    return a.name < b.name;
 }
 
 int main() {
@@ -32,19 +44,22 @@ int main() {
         cout << "6. Delete student" << endl;
         cout << "7. Count failing students" << endl;
         cout << "8. Clear all" << endl;
+        cout << "9. Score Statistics (avg/max/min)" << endl;
+        cout << "10. Score Range (90-100 etc.)" << endl;
+        cout << "11. Fuzzy search by name" << endl;
+        cout << "12. Multi sort" << endl;
+        cout << "13. Page display" << endl;
         cout << "0. Exit" << endl;
         cout << "========================================" << endl;
         cout << "Please enter your option: " << endl;
         cin >> option;
 
-        // 0. Exit
-        if (option == 0) {
+        if (option == 0) {    // 0. Exit
             cout << "You have exited the system." << endl;
             break;
         }
 
-        // 1. Add
-        if (option == 1) {
+        if (option == 1) {    // 1. Add
             Student stu;
             cout << "Please enter the name: "; cin >> stu.name;
             cout << "Please enter the id: "; cin >> stu.id;
@@ -53,8 +68,7 @@ int main() {
             cout << "You have added a new student successfully!" << endl;
         }
 
-        // 2. Display
-        if (option == 2) {
+        if (option == 2) {    // 2. Display
             cout << "\nName\tID\tScore" << endl;
             for (auto &s : stuList) {
                 cout << s.name << "\t"
@@ -64,14 +78,12 @@ int main() {
             cout << endl;
         }
 
-        // 3. Sort
-        if (option == 3) {
+        if (option == 3) {    // 3. Sort
             sort(stuList.begin(), stuList.end(), cmpStudentScore);
             cout << "Sorted by score in descending order successfully!" << endl;
         }
 
-        // 4. Search by student ID
-        if (option == 4) {
+        if (option == 4) {    // 4. Search by student ID
             int findID = 0;
             cout << "Please enter the student ID to search: ";
             cin >> findID;
@@ -92,8 +104,7 @@ int main() {
             }
         }
 
-        // 5. Modify score
-        if (option == 5) {
+        if (option == 5) {    // 5. Modify score
             int modifyID = 0;
             cout << "Please enter the student ID to modify: "; cin >> modifyID;
             bool found = false;
@@ -114,8 +125,7 @@ int main() {
             }
         }
 
-        // 6. Delete student
-        if (option == 6) {
+        if (option == 6) {    // 6. Delete student
             int deleteID = 0;
             cout << "Please enter the student ID to delete: "; cin >> deleteID;
 
@@ -128,8 +138,7 @@ int main() {
             }
         }
 
-        // 7. Count failing students
-        if (option == 7) {
+        if (option == 7) {    // 7. Count failing students
             int cnt = 0;
             for (auto &s : stuList) {
                 if (s.score < 60) {
@@ -139,8 +148,7 @@ int main() {
             cout << "The number of failing students: " << cnt << endl;
         }
 
-        // 8. Clear all
-        if (option == 8) {
+        if (option == 8) {    // 8. Clear all
             cout << "Are you sure to CLEAR ALL? 0 = Cancel, 1 = Confirm" << endl;
             int op = 0; cin >> op;
             if (op == 1) {
@@ -156,7 +164,26 @@ int main() {
     return 0;
 }
 
-//English Upgrade Outline for Student Management System
+    if(option == 9){
+        if(stuList.empty()){
+            cout << "There is no student now!" << endl;
+            break;
+        }else{
+            int sum = 0;
+            int max = stuList[0].score;
+            int min = stuList[0].score;
+            for(auto &s : stuList){
+                sum += s.score;
+                if(s.score > max) max = s.score;
+                if(s.score < min) min = s.score;
+            }
+            double avg = (double)sum / stuList.size();
+            cout << fixed << setprecision(2);
+            cout << "Avg: " << avg << endl;
+            cout << "Max: " << max << endl;
+            cout << "Min: " << min << endl;
+        }
+    }
 //1. Basic Function Enhancement
 //Add student score statistics: average score, highest score, lowest score
 //Add score range statistics (90-100, 80-89, ..., <60)
