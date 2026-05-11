@@ -1,325 +1,524 @@
 //FIRST MODIFICATION : 20260409 Initially set up the framework
 //SECOND MODIFICATION : 20260418 Completed the initial version of Student Management System
 //THIRD MODIFICATION : 20260420 20260423 20260426 Basic function enhancement(PART)
-#include<iostream>
-#include<string>
-#include<vector>
-#include<algorithm>
-#include<iomanip>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <iomanip>
+#include <fstream>
 using namespace std;
 
-struct Student {    //Create Student Structure
-    string name;
-    int score;
-    int id;
+/**
+ * Student Structure
+ * Stores basic information of a student
+ */
+struct Student {
+    string name;    // Student name (no spaces allowed)
+    int score;      // Score range: 0-100
+    int id;         // Unique student ID
 };
 
-bool isIDExist(vector<Student>& list,int id){    //Check if the ID is duplicated
-    for(auto &s : list){
-        if(s.id == id) return true;
+/**
+ * StudentManager Class
+ * Encapsulates all student management operations
+ * Provides data persistence and CRUD functionality
+ */
+class StudentManager {
+private:
+    vector<Student> stuList;           // Student data storage
+    const string FILENAME = "Students.txt";  // Data persistence file
+
+    /**
+     * Check if a student ID already exists
+     * @param id Student ID to check
+     * @return true if ID exists, false otherwise
+     */
+    bool isIDExist(int id) const {
+        for (const auto& s : stuList) {
+            if (s.id == id) return true;
+        }
+        return false;
     }
-    return false;
+
+    /**
+     * Save all student data to file
+     * Automatically called after data modification
+     */
+    void saveToFile() const {
+        ofstream outFile(FILENAME);
+        if (!outFile.is_open()) {
+            cout << "[Error] Failed to open file for saving." << endl;
+            return;
+        }
+        for (const auto& s : stuList) {
+            outFile << s.name << " " << s.id << " " << s.score << endl;
+        }
+        outFile.close();
+    }
+
+    /**
+     * Load student data from file
+     * Automatically called when program starts
+     */
+    void loadFromFile() {
+        ifstream inFile(FILENAME);
+        if (!inFile.is_open()) {
+            return;  // File doesn't exist, start with empty list
+        }
+        Student stu;
+        while (inFile >> stu.name >> stu.id >> stu.score) {
+            // Check for duplicate IDs when loading
+            if (!isIDExist(stu.id)) {
+                stuList.push_back(stu);
+            }
+        }
+        inFile.close();
+    }
+
+    // Comparison functions for sorting
+    static bool cmpScoreDesc(const Student& a, const Student& b) {
+        return a.score > b.score;
+    }
+    static bool cmpScoreAsc(const Student& a, const Student& b) {
+        return a.score < b.score;
+    }
+    static bool cmpID(const Student& a, const Student& b) {
+        return a.id < b.id;
+    }
+    static bool cmpName(const Student& a, const Student& b) {
+        return a.name < b.name;
+    }
+
+public:
+    /**
+     * Constructor: automatically load data from file
+     */
+    StudentManager() {
+        loadFromFile();
+    }
+
+    /**
+     * Destructor: automatically save data to file
+     */
+    ~StudentManager() {
+        saveToFile();
+    }
+
+    /**
+     * Add a new student
+     */
+    void addStudent() {
+        Student stu;
+        cout << "Please enter the name: ";
+        cin >> stu.name;
+        cout << "Please enter the id: ";
+        cin >> stu.id;
+
+        if (isIDExist(stu.id)) {
+            cout << "[Error] The id is duplicated. Please enter again." << endl;
+            return;
+        }
+
+        cout << "Please enter the score: ";
+        cin >> stu.score;
+        if (stu.score < 0 || stu.score > 100) {
+            cout << "[Error] The score is not reasonable (0-100). Please enter again." << endl;
+            return;
+        }
+
+        stuList.push_back(stu);
+        saveToFile();
+        cout << "[Success] You have added a new student successfully!" << endl;
+    }
+
+    /**
+     * Display all students
+     */
+    void displayAll() const {
+        if (stuList.empty()) {
+            cout << "[Info] There is no data for any student." << endl;
+            return;
+        }
+        cout << "\n========== Student List ==========" << endl;
+        cout << "Name\t\tID\tScore" << endl;
+        cout << "----------------------------------" << endl;
+        for (const auto& s : stuList) {
+            cout << s.name << "\t\t" << s.id << "\t" << s.score << endl;
+        }
+        cout << "==================================" << endl;
+    }
+
+    /**
+     * Sort students by multiple conditions
+     */
+    void sortStudents() {
+        if (stuList.empty()) {
+            cout << "[Info] There is no data for any student." << endl;
+            return;
+        }
+
+        int op = 0;
+        cout << "Choose sorting method:" << endl;
+        cout << "  1 -- Score (Descending)" << endl;
+        cout << "  2 -- Score (Ascending)" << endl;
+        cout << "  3 -- ID" << endl;
+        cout << "  4 -- Name" << endl;
+        cout << "Your choice: ";
+        cin >> op;
+
+        switch (op) {
+            case 1:
+                sort(stuList.begin(), stuList.end(), cmpScoreDesc);
+                cout << "[Success] Sorted by score in descending order!" << endl;
+                break;
+            case 2:
+                sort(stuList.begin(), stuList.end(), cmpScoreAsc);
+                cout << "[Success] Sorted by score in ascending order!" << endl;
+                break;
+            case 3:
+                sort(stuList.begin(), stuList.end(), cmpID);
+                cout << "[Success] Sorted by ID!" << endl;
+                break;
+            case 4:
+                sort(stuList.begin(), stuList.end(), cmpName);
+                cout << "[Success] Sorted by name!" << endl;
+                break;
+            default:
+                cout << "[Error] Invalid option." << endl;
+                return;
+        }
+        saveToFile();
+    }
+
+    /**
+     * Search student by ID
+     */
+    void searchByID() const {
+        if (stuList.empty()) {
+            cout << "[Info] There is no data for any student." << endl;
+            return;
+        }
+
+        int findID;
+        cout << "Please enter the student ID to search: ";
+        cin >> findID;
+
+        for (const auto& s : stuList) {
+            if (s.id == findID) {
+                cout << "\n========== Student Found ==========" << endl;
+                cout << "Student ID:   " << s.id << endl;
+                cout << "Student Name: " << s.name << endl;
+                cout << "Student Score:" << s.score << endl;
+                cout << "===================================" << endl;
+                return;
+            }
+        }
+        cout << "[Error] No such student found!" << endl;
+    }
+
+    /**
+     * Modify student score
+     */
+    void modifyScore() {
+        if (stuList.empty()) {
+            cout << "[Info] There is no data for any student." << endl;
+            return;
+        }
+
+        int modifyID;
+        cout << "Please enter the student ID to modify: ";
+        cin >> modifyID;
+
+        for (auto& s : stuList) {
+            if (s.id == modifyID) {
+                cout << "Original Score: " << s.score << endl;
+                cout << "Please enter the new score: ";
+                cin >> s.score;
+
+                if (s.score < 0 || s.score > 100) {
+                    cout << "[Error] The score is not reasonable. Modification failed." << endl;
+                    return;
+                }
+
+                saveToFile();
+                cout << "[Success] Modified successfully! New score: " << s.score << endl;
+                return;
+            }
+        }
+        cout << "[Error] Modification failed! No such student." << endl;
+    }
+
+    /**
+     * Delete a student by ID
+     */
+    void deleteStudent() {
+        if (stuList.empty()) {
+            cout << "[Info] There is no data for any student." << endl;
+            return;
+        }
+
+        int deleteID;
+        cout << "Please enter the student ID to delete: ";
+        cin >> deleteID;
+
+        for (auto it = stuList.begin(); it != stuList.end(); ++it) {
+            if (it->id == deleteID) {
+                stuList.erase(it);
+                saveToFile();
+                cout << "[Success] Delete successfully!" << endl;
+                return;
+            }
+        }
+        cout << "[Error] Delete failed! No such student." << endl;
+    }
+
+    /**
+     * Count failing students (score < 60)
+     */
+    void countFailing() const {
+        if (stuList.empty()) {
+            cout << "[Info] There is no data for any student." << endl;
+            return;
+        }
+
+        int cnt = 0;
+        for (const auto& s : stuList) {
+            if (s.score < 60) cnt++;
+        }
+        cout << "The number of failing students: " << cnt << endl;
+    }
+
+    /**
+     * Clear all student data
+     */
+    void clearAll() {
+        cout << "Are you sure to CLEAR ALL? 0 = Cancel, 1 = Confirm: ";
+        int op;
+        cin >> op;
+
+        if (op == 1) {
+            stuList.clear();
+            saveToFile();
+            cout << "[Success] Clear all successfully." << endl;
+        } else {
+            cout << "[Info] Canceled successfully." << endl;
+        }
+    }
+
+    /**
+     * Calculate score statistics (average, max, min)
+     */
+    void scoreStatistics() const {
+        if (stuList.empty()) {
+            cout << "[Info] There is no student now!" << endl;
+            return;
+        }
+
+        int sum = 0;
+        int maxScore = stuList[0].score;
+        int minScore = stuList[0].score;
+
+        for (const auto& s : stuList) {
+            sum += s.score;
+            if (s.score > maxScore) maxScore = s.score;
+            if (s.score < minScore) minScore = s.score;
+        }
+
+        double avg = static_cast<double>(sum) / stuList.size();
+        cout << fixed << setprecision(2);
+        cout << "\n========== Score Statistics ==========" << endl;
+        cout << "Average: " << avg << endl;
+        cout << "Maximum: " << maxScore << endl;
+        cout << "Minimum: " << minScore << endl;
+        cout << "======================================" << endl;
+    }
+
+    /**
+     * Display score range distribution
+     */
+    void scoreRange() const {
+        if (stuList.empty()) {
+            cout << "[Info] There is no data for any student." << endl;
+            return;
+        }
+
+        int a = 0, b = 0, c = 0, d = 0, e = 0;
+        for (const auto& s : stuList) {
+            if (s.score >= 90) a++;
+            else if (s.score >= 80) b++;
+            else if (s.score >= 70) c++;
+            else if (s.score >= 60) d++;
+            else e++;
+        }
+
+        cout << "\n========== Score Range Distribution ==========" << endl;
+        cout << "90 - 100 : " << a << " students" << endl;
+        cout << "80 - 89  : " << b << " students" << endl;
+        cout << "70 - 79  : " << c << " students" << endl;
+        cout << "60 - 69  : " << d << " students" << endl;
+        cout << "Below 60 : " << e << " students" << endl;
+        cout << "==============================================" << endl;
+    }
+
+    /**
+     * Fuzzy search by name
+     */
+    void fuzzySearch() const {
+        if (stuList.empty()) {
+            cout << "[Info] There is no data for any student." << endl;
+            return;
+        }
+
+        string key;
+        cout << "Please enter the name keyword: ";
+        cin >> key;
+
+        bool found = false;
+        cout << "\n========== Search Results ==========" << endl;
+        for (const auto& s : stuList) {
+            if (s.name.find(key) != string::npos) {
+                cout << s.id << "\t" << s.name << "\t" << s.score << endl;
+                found = true;
+            }
+        }
+        cout << "====================================" << endl;
+
+        if (!found) {
+            cout << "[Info] No match found!" << endl;
+        }
+    }
+
+    /**
+     * Display students by page
+     */
+    void pageDisplay() const {
+        if (stuList.empty()) {
+            cout << "[Info] There is no data for any student." << endl;
+            return;
+        }
+
+        int pageSize = 3;
+        cout << "Please enter page size (default 3): ";
+        cin >> pageSize;
+
+        if (pageSize <= 0) {
+            cout << "[Error] Invalid page size." << endl;
+            return;
+        }
+
+        int total = stuList.size();
+        int pages = total / pageSize;
+        if (total % pageSize != 0) pages++;
+
+        cout << "Total pages: " << pages << endl;
+        cout << "Please enter the page you want to view: ";
+        int page;
+        cin >> page;
+
+        if (page < 1 || page > pages) {
+            cout << "[Error] Invalid page number." << endl;
+            return;
+        }
+
+        int start = (page - 1) * pageSize;
+        int end = min(start + pageSize, total);
+
+        cout << "\n========== Page " << page << " / " << pages << " ==========" << endl;
+        cout << "ID\tName\t\tScore" << endl;
+        cout << "--------------------------------" << endl;
+        for (int i = start; i < end; i++) {
+            cout << stuList[i].id << "\t" << stuList[i].name << "\t\t" << stuList[i].score << endl;
+        }
+        cout << "================================" << endl;
+    }
+
+    /**
+     * Get current student count
+     */
+    int getCount() const {
+        return stuList.size();
+    }
+};
+
+/**
+ * Display main menu
+ */
+void showMenu() {
+    cout << "\n╔══════════════════════════════════════╗" << endl;
+    cout << "║     Student Management System        ║" << endl;
+    cout << "╠══════════════════════════════════════╣" << endl;
+    cout << "║  1. Add Student                      ║" << endl;
+    cout << "║  2. Display All                      ║" << endl;
+    cout << "║  3. Sort Students                    ║" << endl;
+    cout << "║  4. Search by ID                     ║" << endl;
+    cout << "║  5. Modify Score                     ║" << endl;
+    cout << "║  6. Delete Student                   ║" << endl;
+    cout << "║  7. Count Failing Students           ║" << endl;
+    cout << "║  8. Clear All Data                   ║" << endl;
+    cout << "║  9. Score Statistics                 ║" << endl;
+    cout << "║ 10. Score Range Distribution         ║" << endl;
+    cout << "║ 11. Fuzzy Search by Name             ║" << endl;
+    cout << "║ 12. Page Display                     ║" << endl;
+    cout << "║  0. Exit                             ║" << endl;
+    cout << "╚══════════════════════════════════════╝" << endl;
+    cout << "Please enter your option: ";
 }
 
-bool cmpStudentdesc(Student a, Student b) {    //Sort by score in descending order
-    return a.score > b.score;
-}
-
-bool cmpStudentasc(Student a,Student b){    //Sort by score in ascending order
-    return a.score < b.score;
-}
-
-bool cmpID(Student a,Student b){    //Sort by ID
-    return a.id < b.id;
-}
-
-bool cmpName(Student a,Student b){    //Sort by name
-    return a.name < b.name;
-}
-
-int main() {
-    vector<Student> stuList;
-    int option = 0;
-
-    while(true){
-        cout << "====== Student Management System ======" << endl;
-        cout << "1. Add" << endl;
-        cout << "2. Display" << endl;
-        cout << "3. Sort" << endl;
-        cout << "4. Search by student ID" << endl;
-        cout << "5. Modify score" << endl;
-        cout << "6. Delete student" << endl;
-        cout << "7. Count failing students" << endl;
-        cout << "8. Clear all" << endl;
-        cout << "9. Score Statistics (avg/max/min)" << endl;
-        cout << "10. Score Range (90-100 etc.)" << endl;
-        cout << "11. Fuzzy search by name" << endl;
-        cout << "12. Page display" << endl;
-        cout << "0. Exit" << endl;
-        cout << "========================================" << endl;
-        cout << "Please enter your option: " << endl;
-
-        if(!(cin >> option)){    //Prevent crashes caused by non-numeric input
+/**
+ * Get valid menu option from user
+ */
+int getOption() {
+    int option;
+    while (true) {
+        showMenu();
+        if (cin >> option) {
+            if (option >= 0 && option <= 12) {
+                return option;
+            }
+            cout << "[Error] Option out of range (0-12). Please try again." << endl;
+        } else {
             cin.clear();
-            cin.ignore(10000,'\n');
-            cout << "Input contains non-numeric characters. Please enter again." << endl;
-            continue;
+            cin.ignore(10000, '\n');
+            cout << "[Error] Input contains non-numeric characters. Please enter again." << endl;
         }
-
-        if(option == 0){    // 0. Exit
-            cout << "You have exited the system." << endl;
-            break;
-        }
-
-        if(option == 1){    // 1. Add
-            Student stu;
-            cout << "Please enter the name: "; cin >> stu.name;
-            cout << "Please enter the id: "; cin >> stu.id;
-            if(isIDExist(stuList,stu.id)){    //Check if the id duplicated
-                cout << "The id is duplicated.Please enter again." << endl;
-                continue;
-            }
-            cout << "Please enter the score: "; cin >> stu.score;
-            if(stu.score < 0 || stu.score > 100){    //Check whether the input score is reasonable
-                cout << "The score is not reasonable.Please enter the score again." << endl;
-                continue;
-            }
-            stuList.push_back(stu);
-            cout << "You have added a new student successfully!" << endl;
-        }
-
-        if(option == 2){    // 2. Display
-            if(stuList.empty()){
-                cout << "There is no data for this student." << endl;
-            }else{
-                cout << "\nName\tID\tScore" << endl;
-                for (auto &s : stuList) {
-                    cout << s.name << "\t"
-                         << s.id << "\t"
-                         << s.score << endl;
-                }
-            }
-            cout << endl;
-        }
-
-        if(option == 3){    // 3.Multi-condition sorting
-            if(stuList.empty()){
-                cout << "There is no data for this student." << endl;
-            }else{
-                int op = 0;
-                cout << "Choose the way you want to sort :" << endl
-                << "1--score desc 2--score asc 3--by id 4--by name" << endl;
-                cin >> op;
-                if(op == 1){    //descending
-                    sort(stuList.begin(), stuList.end(), cmpStudentdesc);
-                    cout << "Sorted by score in descending order successfully!" << endl;
-                }
-                if(op == 2){    //ascending
-                    sort(stuList.begin(),stuList.end(),cmpStudentasc);
-                    cout << "Sorted by score in ascending order successfully!" << endl;
-                }
-                if(op == 3){    //id
-                    sort(stuList.begin(),stuList.end(),cmpID);
-                    cout << "Sorted by id order successfully!" << endl;
-                }
-                if(op == 4){    //name
-                    sort(stuList.begin(),stuList.end(),cmpName);
-                    cout << "Sorted by name order successfully!" << endl;
-                }
-            }
-        }
-
-        if(option == 4){    // 4. Search by student ID
-            if(stuList.empty()){
-                cout << "There is no data for this student." << endl;
-            }else{
-                int findID = 0;
-                cout << "Please enter the student ID to search: ";
-                cin >> findID;
-                bool found = false;
-    
-                for (auto &s : stuList) {
-                    if (s.id == findID) {
-                        cout << "Student ID: " << s.id << endl;
-                        cout << "Student name: " << s.name << endl;
-                        cout << "Student score: " << s.score << endl;
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) {
-                    cout << "No such student found!" << endl;
-                }
-            }
-        }
-
-        if(option == 5){    // 5. Modify score
-            if(stuList.empty()){
-                cout << "There is no data for this student." << endl;
-            }else{
-                int modifyID = 0;
-                cout << "Please enter the student ID to modify: "; cin >> modifyID;
-                bool found = false;
-    
-                for (auto &s : stuList) {
-                    if (s.id == modifyID) {
-                        cout << "Original Score: " << s.score << endl;
-                        cout << "Please enter the new score: ";
-                        cin >> s.score;
-                        if(s.score <0 || s.score >100){
-                            cout << "The score is not reasonable.Modify failed." << endl;
-                            found = true;
-                            break;
-                        }
-                        cout << "Modified successfully! New score: " << s.score << endl;
-                        found = true;
-                        break;
-                    }
-                }
-    
-                if (!found) {
-                    cout << "Modification failed! No such student." << endl;
-                }
-            }
-        }
-
-        if(option == 6){    // 6. Delete student
-            if(stuList.empty()){
-                cout << "There is no data for this student." << endl;
-            }else{
-                int deleteID = 0;
-                cout << "Please enter the student ID to delete: "; cin >> deleteID;
-                bool deleted = false;
-                for(auto it = stuList.begin(); it != stuList.end(); it++){
-                    if(it->id == deleteID){
-                        stuList.erase(it);
-                        cout << "Delete successfully!" << endl;
-                        deleted = true;
-                        break;
-                    }
-                }
-                if(!deleted){
-                    cout << "Delete failed! No such student." << endl;
-                }
-            }
-        }
-
-        if(option == 7){    // 7. Count failing students
-            if(stuList.empty()){
-                cout << "There is no data for this student." << endl;
-            }else{
-                int cnt = 0;
-                for (auto &s : stuList) {
-                    if (s.score < 60) {
-                        cnt++;
-                    }
-                }
-                cout << "The number of failing students: " << cnt << endl;
-            }
-        }
-
-        if(option == 8){    // 8. Clear all
-            cout << "Are you sure to CLEAR ALL? 0 = Cancel, 1 = Confirm" << endl;
-            int op = 0; cin >> op;
-            if (op == 1) {
-                stuList.clear();
-                cout << "Clear all successfully." << endl;
-            } else {
-                cout << "Canceled successfully." << endl;
-            }
-        }
-
-        if(option == 9){    //9.find average score, highest score and lowest score
-            if(stuList.empty()){
-                cout << "There is no student now!" << endl;
-            }else{
-                int sum = 0;
-                int max = stuList[0].score;
-                int min = stuList[0].score;
-                for(auto &s : stuList){
-                    sum += s.score;
-                    if(s.score > max) max = s.score;
-                    if(s.score < min) min = s.score;
-                }
-                double avg = (double)sum / stuList.size();
-                cout << fixed << setprecision(2);
-                cout << "Avg: " << avg << endl;
-                cout << "Max: " << max << endl;
-                cout << "Min: " << min << endl;
-            }
-        }
-
-        if(option == 10){    //10.Score range statistics
-            if(stuList.empty()){
-                cout << "There is no data for this student." << endl;
-            }else{
-                int a,b,c,d,e;
-                a = b = c = d = e = 0;
-                for(auto &s : stuList){
-                    if(s.score >= 90) a++;
-                    else if(s.score >= 80) b++;
-                    else if(s.score >= 70) c++;
-                    else if(s.score >= 60) d++;
-                    else e++;
-                }
-                cout << "Below are the students belonging to each score range. " << endl;
-                cout << "100 - 90:" << a << endl;
-                cout << "90 - 80:" << b << endl;
-                cout << "80 - 70:" << c << endl;
-                cout << "70 - 60:" << d << endl;
-                cout << "Below 60:" << e << endl;
-            }
-        }
-
-        if(option == 11){    //11.Name fuzzy search
-            if(stuList.empty()){
-                cout << "There is no data for this student." << endl;
-            }else{
-                string key;
-                cout << "Please enter the name :";
-                cin >> key;
-                bool found = false;
-                for(auto &s : stuList){
-                    if(s.name.find(key) != string::npos){
-                        cout << s.id << " " << s.name << " " << s.score << endl;
-                        found = true;
-                    }
-                }
-                if(!found) cout << "No match !" << endl;
-            }
-        }
-
-        if(option == 12){    //12.Show pages
-            if(stuList.empty()){
-                cout << "There is no data for this student." << endl;
-            }else{
-                int pagesize = 3;
-                cout << "Please enter the pagesize(default 3) :" << endl;
-                cin >> pagesize;
-                int total = stuList.size();
-                int pages = total / pagesize;
-                if(total % pagesize != 0) pages++;
-    
-                cout << "Total pages :" << pages << endl;
-                int page = 0;
-                cout << "Please enter the page you want to view :" << endl;
-                cin >> page;
-    
-                int start = (page - 1) * pagesize;
-                int end = start + pagesize;
-                if(end > total) end = total;
-    
-                cout << "ID\tName\tScore" << endl;
-                for (int i = start; i < end; i++) {
-                    cout << stuList[i].id << "\t"
-                         << stuList[i].name << "\t"
-                         << stuList[i].score << endl;
-                }
-            }
-        }
-        cout << endl;
     }
+}
+
+/**
+ * Main function
+ */
+int main() {
+    StudentManager manager;  // Automatically loads data from file
+
+    cout << "Welcome to Student Management System!" << endl;
+    cout << "Loaded " << manager.getCount() << " student(s) from file." << endl;
+
+    while (true) {
+        int option = getOption();
+
+        switch (option) {
+            case 0:
+                cout << "\n[Info] Saving data and exiting..." << endl;
+                cout << "You have exited the system. Goodbye!" << endl;
+                return 0;
+            case 1: manager.addStudent(); break;
+            case 2: manager.displayAll(); break;
+            case 3: manager.sortStudents(); break;
+            case 4: manager.searchByID(); break;
+            case 5: manager.modifyScore(); break;
+            case 6: manager.deleteStudent(); break;
+            case 7: manager.countFailing(); break;
+            case 8: manager.clearAll(); break;
+            case 9: manager.scoreStatistics(); break;
+            case 10: manager.scoreRange(); break;
+            case 11: manager.fuzzySearch(); break;
+            case 12: manager.pageDisplay(); break;
+            default:
+                cout << "[Error] Invalid option." << endl;
+        }
+    }
+
     return 0;
 }
 /*
@@ -340,7 +539,7 @@ Prompt when the student list is empty
 Clear prompts for failed search, modify, delete operations
 Fix logical bugs and program crash risks
 
-3. Data Persistence (File Storage)
+3. Data Persistence (File Storage)√
 Automatically save all student data to a text file
 Automatically load data from the file when the program starts
 Realize data will not be lost after exiting the program
